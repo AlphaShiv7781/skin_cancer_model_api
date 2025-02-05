@@ -28,6 +28,9 @@ def preprocess_image(image: Image.Image):
     img_array = np.expand_dims(img_array, axis=0)  # Add batch dimension
     return img_array
 
+@app.get("/")
+def home():
+    return {"message": "InstaScan API is running!"}
 
 @app.post("/predict")
 async def predict(file: UploadFile = File(...)):
