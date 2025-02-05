@@ -3,6 +3,7 @@ import numpy as np
 from PIL import Image
 import io
 import tensorflow as tf
+import uvicorn
 
 app = FastAPI()
 
@@ -52,5 +53,5 @@ async def predict(file: UploadFile = File(...)):
 
 
 if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    port = int(os.environ.get("PORT", 8000))  # Default to 8000 for local testing
+    uvicorn.run(app, host="0.0.0.0", port=port)
