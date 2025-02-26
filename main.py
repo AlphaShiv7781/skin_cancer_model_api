@@ -1,7 +1,7 @@
 import os
-from pyexpat import model
+# from pyexpat import model
 from fastapi import FastAPI, File, UploadFile, HTTPException
-from fastapi.responses import JSONResponse
+# from fastapi.responses import JSONResponse
 import numpy as np
 from PIL import Image
 import io
