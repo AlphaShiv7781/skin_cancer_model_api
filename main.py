@@ -1,10 +1,13 @@
 import os
+from pyexpat import model
 from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi.responses import JSONResponse
 import numpy as np
 from PIL import Image
 import io
 import tensorflow as tf
 import uvicorn
+import pydicom
 
 app = FastAPI()
 
@@ -20,6 +23,10 @@ except Exception as e:
     raise RuntimeError(f"Failed to load model: {str(e)}")
 
 
+
+
+
+
 def preprocess_image(image: Image.Image):
     """Preprocess image to match model input"""
     image = image.convert('RGB')  # Ensure 3 channels
@@ -28,11 +35,40 @@ def preprocess_image(image: Image.Image):
     img_array = np.expand_dims(img_array, axis=0)  # Add batch dimension
     return img_array
 
+
+
+
 @app.get("/")
 def home():
     return {"message": "InstaScan API is running!"}
 
-@app.post("/predict")
+def process_imagePneumonia(image: Image.Image):
+    image = image.resize((224, 224))
+    img_array = np.array(image) / 255.0
+    img_array = np.expand_dims(img_array, axis=0)
+    return img_array
+
+@app.post("/predictPneumonia")
+async def predict(file: UploadFile = File(...)):
+    filename = file.filename.lower()
+    
+    if filename.endswith(".dcm"):
+        dicom_img = pydicom.dcmread(io.BytesIO(await file.read()))
+        img_array = dicom_img.pixel_array
+        img = Image.fromarray(img_array).convert("RGB")
+    else:
+        img = Image.open(io.BytesIO(await file.read())).convert("RGB")
+    
+    image = preprocess_image(img)
+    interpreter.set_tensor(input_details[0]['index'], image)
+    interpreter.invoke()
+    prediction = interpreter.get_tensor(output_details[0]['index'])[0][0] * 100
+    return {"disease-confidence": f"{prediction:.2f}%"}
+
+
+
+# Skin Cancer
+@app.post("/predictSkinCancer")
 async def predict(file: UploadFile = File(...)):
     try:
         contents = await file.read()
